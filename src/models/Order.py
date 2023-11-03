@@ -31,6 +31,27 @@ class Order():
             take_price: float=0,
             bot_id: int=-1,
             ):
+        '''
+            "Order()" class is a model for orders.
+            --------------------------------------------------------------------------
+                Parameters
+                    symbol -> str:
+                        Order symbol.
+                    ENUM_ORDER_SIDE -> str:
+                        Side for this order, taken from ENUM_ORDER_SIDE.
+                    qty -> float:
+                        Order quantity.
+                    price -> float:
+                        Order price.
+                    time_created -> datetime:
+                        Time of order placement.
+                    stop_price -> float (optional): | IT MAY BE TRANSFERED TO TRADE CLASS
+                        Order stop price.
+                    take_price -> float (optional): | IT MAY BE TRANSFERED TO TRADE CLASS
+                        Order stop price.
+                    bot_id -> int (optional):
+                        Bot ID to manage more than one, if needed.
+        '''
         self.__order_id=str(uuid.uuid4())
         self.__symbol=symbol
         self.__bot_id=bot_id

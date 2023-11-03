@@ -10,6 +10,21 @@ class Fill():
             price: float,
             fill_time: datetime.datetime
             ):
+        '''
+            "Fill()" class is a model for order fills.
+            --------------------------------------------------------------------------
+                Parameters
+                    order_id -> str:
+                        Fill order ID.
+                    side -> str:
+                        Side for this fill, taken from Order.ENUM_ORDER_SIDE.
+                    qty -> float:
+                        Fill quantity.
+                    price -> float:
+                        Fill price.
+                    fill_time -> datetime:
+                        Fill time.
+        '''
         self.__fill_id=str(uuid.uuid4())
         self.__order_id=order_id
         self.__side=side

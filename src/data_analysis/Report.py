@@ -10,6 +10,18 @@ from src.models.Trade import Trade
 
 class Report():
     def __init__(self, name, symbol, trades):
+        '''
+            "Report()" is a class to get all backtest informations and plot a report if wanted.
+            --------------------------------------------------------------------------
+                Parameters
+                    name -> list:
+                        Name from the backtest.
+                    symbol -> str:
+                        Symbol from the backtest.
+                    trades -> TradeLogic:
+                        Trades list from the backtest.
+        '''
+        self.__backtest_results:dict={}
         self.__can_generate_report = len(trades)>0
         if not self.__can_generate_report:
             return print('No trades')
@@ -24,7 +36,6 @@ class Report():
                 -x.get_trade_info()['entry_order']['avg_fill_price']*x.get_trade_info()['entry_order']['filled_volume']+x.get_trade_info()['out_order']['avg_fill_price']*x.get_trade_info()['out_order']['filled_volume']
         },trades)))
         self.__result_df=pd.DataFrame()
-        self.__backtest_results:dict={}
         self.__calculate_parameters()
         self.__symbol=symbol
         self.__name=name
@@ -126,21 +137,21 @@ class Report():
 
         # Write
         print('Gross profit: \t\t\t', round(self.__backtest_results['gross_profit'],2), end='\t\t\t')
-        print('Winner trades: ', self.__backtest_results['qty_profit'])
+        print('Winner trades: \t\t', self.__backtest_results['qty_profit'])
         print('Gross loss: \t\t\t', round(self.__backtest_results['gross_loss'],0), end='\t\t\t')
-        print('Losing trades: ', self.__backtest_results['qty_loss'])
-        print('Largest profit trade: \t\t', round(self.__backtest_results['max_winner_result'],2), end='\t\t\t\t')
-        print('Largest loss trade: ', round(self.__backtest_results['max_loss_result'],2))
+        print('Losing trades: \t\t', self.__backtest_results['qty_loss'])
+        print('Largest profit trade:\t\t', round(self.__backtest_results['max_winner_result'],2), end='\t\t\t\t')
+        print('Largest loss trade:\t', round(self.__backtest_results['max_loss_result'],2))
         print('Average profit trade: \t\t', round(self.__backtest_results['average_profit'],2), end='\t\t\t\t\n')
         print('Profit trades (% of total): \t', round(self.__backtest_results['profit_trades_perc'],2),'%\n')
         print('Profit factor: \t\t\t', round(self.__backtest_results['profit_factor'],2))
-        print('Average loss trade: ', round(self.__backtest_results['average_loss'],2))
+        print('Average loss trade: \t\t', round(self.__backtest_results['average_loss'],2))
         print('Profit/Loss: \t\t\t', abs(round(self.__backtest_results['average_profit']/self.__backtest_results['average_loss'],2)))
         print('Total Net profit: \t\t', round(self.__backtest_results['returns'], 2))
         print('Percentual return: \t\t', round(self.__backtest_results['perc_returns'],2), '%\n')
         print('Number of trades: \t\t', round(self.__backtest_results['total_trades'],2))
-        print('Number of bought trades: \t', round(self.__backtest_results['total_bought'],2))
-        print('Number of sold trades: \t\t', round(self.__backtest_results['total_sold'],2), '\n')
+        print('Bought trades: \t\t\t', round(self.__backtest_results['total_bought'],2))
+        print('Sold trades: \t\t\t', round(self.__backtest_results['total_sold'],2), '\n')
         print('Balance Drawdown Maximal: \t', round(self.__backtest_results['max_drawdown'],2))
         print('Balance Drawdown Maximal Time Range:', self.__dateInitDD, ' until ', self.__dateEndDD)
         
@@ -158,7 +169,7 @@ class Report():
         # Pizza
         axPizza.set_title('Profit, Loss, and Neutral Positions (%)')
         sizes = [self.__backtest_results['qty_profit'], self.__backtest_results['qty_loss'], self.__backtest_results['qty_none']]
-        labels = 'Profit', 'Loss', 'Equilibrium' 
+        labels = 'Profit', 'Loss', 'None' 
         axPizza.pie(sizes, labels=labels, autopct='%1.2f%%',
                     colors=['#6DC75E','#D6675A','#5CA8DA'],
                     textprops={'fontsize': 14})
