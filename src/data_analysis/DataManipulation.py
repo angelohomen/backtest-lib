@@ -6,13 +6,13 @@ today = datetime.now()
 import warnings
 warnings.filterwarnings('ignore')
 
-from src.MT5 import MetaTraderConnection
+from src.data_analysis.MT5 import MetaTraderConnection
 
-CALL_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
-PUT_LETTERS = ['M','N','O','P','Q','R','S','T','U','V','W','X']
-PRICE_COLUMNS = ['time', 'open', 'high', 'low', 'close', 'tick_volume', 'spread', 'real_volume']
 
 class DataManipulation():
+    CALL_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L']
+    PUT_LETTERS = ['M','N','O','P','Q','R','S','T','U','V','W','X']
+    PRICE_COLUMNS = ['time', 'open', 'high', 'low', 'close', 'tick_volume', 'spread', 'real_volume']
     def __init__(self):
         self.MT5 = MetaTraderConnection()
 
@@ -27,10 +27,10 @@ class DataManipulation():
             raw_data=raw_data[['Date', 'Open', 'High', 'Low', 'Adj Close', 'Volume']]
             raw_data['Spread']=0
             raw_data['RealVolume']=raw_data['Volume']
-            raw_data.columns=PRICE_COLUMNS
+            raw_data.columns=self.PRICE_COLUMNS
             df = pd.DataFrame(raw_data)
         else:
-            dict_list = [dict(list(zip(PRICE_COLUMNS,list(i)))) for i in list(raw_data)]
+            dict_list = [dict(list(zip(self.PRICE_COLUMNS,list(i)))) for i in list(raw_data)]
             df = pd.DataFrame(list(dict_list))
         try:
             df['time'] = pd.to_datetime(df['time'], unit = 's')

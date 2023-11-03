@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from src.Fill import Fill
+from src.models.Fill import Fill
 
 class Order():
         # Order state
