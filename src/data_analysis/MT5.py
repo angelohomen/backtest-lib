@@ -27,6 +27,17 @@ timeframes = {
 
 class MetaTraderConnection():
     def __init__(self, server: str="", login: int=0.0, password: str=""):
+        '''
+            "MetaTraderConnection()" is a class to get data from MetaTrader.
+            --------------------------------------------------------------------------
+                Parameters
+                    server -> str (optional):
+                        MetaTrader server.
+                    login -> int (optional):
+                        MetaTrader login.
+                    password -> str (optional):
+                        MetaTrader password.
+        '''
         self.__server = server
         self.__login = login
         self.__password = password

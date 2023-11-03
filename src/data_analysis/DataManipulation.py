@@ -14,6 +14,12 @@ class DataManipulation():
     PUT_LETTERS = ['M','N','O','P','Q','R','S','T','U','V','W','X']
     PRICE_COLUMNS = ['time', 'open', 'high', 'low', 'close', 'tick_volume', 'spread', 'real_volume']
     def __init__(self):
+        '''
+            "DataManipulation()" is a class to search data from a ticker.
+            --------------------------------------------------------------------------
+                Parameters
+                    None
+        '''
         self.MT5 = MetaTraderConnection()
 
     def get_symbol_ohlc_df(self, symbol: str, timeframe: str, count: int) -> pd.DataFrame():

@@ -12,18 +12,33 @@ class Backtest():
             symbol: str, 
             mkt_data: list,
             trade_logic: TradeLogic,
-            max_history: int=100,
             plot_report: bool=False,
             backtest_name: str=None,
             limit_history: int=None
         ):
+        '''
+            "Backtest()" is a class to test a trading algorithm.
+            --------------------------------------------------------------------------
+                Parameters
+                    symbol -> str:
+                        Symbol to backtest.
+                    mkt_data -> list:
+                        Dataframe generated at src.data_analysis.DataManipulation with DataManipulation.PRICE_COLUMNS column order.
+                    trade_logic -> TradeLogic:
+                        Class that contains all logics from the trading strategy.
+                    plot_report (optional) -> bool:
+                        Insert True when needed to plot a backtest report.
+                    backtest_name (optional) -> str:
+                        When set, generates a csv with the backtest informations.
+                    limit_history (optional) -> int:
+                        Used to limit history informations to feed the trade logic, with minimum history, backtest will run faster. Do not set a maximum history with a value less than an indicators period.
+        '''
         self.trades = []
         self.__symbol=symbol
         self.__mkt_data=mkt_data
         self.__trade_logic=trade_logic
         self.__curr_trade:Trade=None
         self.__report=None
-        self.__max_history=max_history
         self.__plot_report=plot_report
         self.__name=backtest_name
         self.__limit_history=limit_history
@@ -49,7 +64,7 @@ class Backtest():
     def __trade_logic_predict(self, history, step, last=False):
         try:
             date = pd.to_datetime(history[-1][0])
-            curr_close_price = history[-2][4]
+            curr_close_price = history[-1][4]
         except:
             return print(f'Skipping {history[-1][0]} due to history lack of data.')
 
