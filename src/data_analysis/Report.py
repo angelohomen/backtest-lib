@@ -6,7 +6,7 @@ import seaborn as sns
 import yfinance as yf
 import warnings
 warnings.filterwarnings('ignore')
-from src.Trade import Trade
+from src.models.Trade import Trade
 
 class Report():
     def __init__(self, name, symbol, trades):
@@ -44,6 +44,10 @@ class Report():
         qty = self.__result_df.groupby('TradeType').size()
         qtyNone = qty['None'] if 'None' in qty.index else 0
 
+        buyLossQty = self.__result_df.groupby('TradeSide').size()
+        qtyBought=buyLossQty['BOUGHT'] if 'BOUGHT' in buyLossQty.index else 0
+        qtySold=buyLossQty['SOLD'] if 'SOLD' in buyLossQty.index else 0
+
         # Report parameters result
         # Number of operations
         totalOp = len(self.__result_df.index)
@@ -77,7 +81,10 @@ class Report():
         self.__result_df['BalanceMaxAc'] = self.__result_df['Balance'].cummax()
         self.__result_df['Drawdowns'] = self.__result_df['BalanceMaxAc'] - self.__result_df['Balance']
         self.__endDD = self.__result_df['Drawdowns'].idxmax()
-        self.__initDD = self.__result_df['BalanceMaxAc'].iloc[:self.__endDD].idxmax()
+        try:
+            self.__initDD = self.__result_df['BalanceMaxAc'].iloc[:self.__endDD].idxmax()
+        except:
+            self.__initDD = 0
         self.__dateInitDD = self.__result_df['EntryTime'].iloc[self.__initDD]
         self.__dateEndDD = self.__result_df['EntryTime'].iloc[self.__endDD]
         self.__initBalance = self.__result_df['Balance'].iloc[self.__initDD]
@@ -87,6 +94,8 @@ class Report():
 
         self.__backtest_results={
             'total_trades': totalOp,
+            'total_bought': qtyBought,
+            'total_sold': qtySold,
             'gross_profit': totalProfit,
             'gross_loss': totalLoss,
             'qty_profit': qtyProfit,
@@ -116,19 +125,22 @@ class Report():
             print(f'\r\n\t\t\t\t\tTrading {self.__symbol} backtest:\r\n')
 
         # Write
-        print('Gross Profit: \t\t\t', round(self.__backtest_results['gross_profit'],2), end='\t\t\t')
+        print('Gross profit: \t\t\t', round(self.__backtest_results['gross_profit'],2), end='\t\t\t')
         print('Winner trades: ', self.__backtest_results['qty_profit'])
-        print('Gross Loss: \t\t\t', round(self.__backtest_results['gross_loss'],0), end='\t\t\t')
+        print('Gross loss: \t\t\t', round(self.__backtest_results['gross_loss'],0), end='\t\t\t')
         print('Losing trades: ', self.__backtest_results['qty_loss'])
-        print('Profit Trades (% of total): \t', round(self.__backtest_results['profit_trades_perc'],2),'%')
-        print('Profit factor: \t\t\t', round(self.__backtest_results['profit_factor'],2))
         print('Largest profit trade: \t\t', round(self.__backtest_results['max_winner_result'],2), end='\t\t\t\t')
         print('Largest loss trade: ', round(self.__backtest_results['max_loss_result'],2))
-        print('Average profit trade: \t\t', round(self.__backtest_results['average_profit'],2), end='\t\t\t\t')
-        print('Average loss trade: ', round(self.__backtest_results['average_loss'],2), '\n')
+        print('Average profit trade: \t\t', round(self.__backtest_results['average_profit'],2), end='\t\t\t\t\n')
+        print('Profit trades (% of total): \t', round(self.__backtest_results['profit_trades_perc'],2),'%\n')
+        print('Profit factor: \t\t\t', round(self.__backtest_results['profit_factor'],2))
+        print('Average loss trade: ', round(self.__backtest_results['average_loss'],2))
         print('Profit/Loss: \t\t\t', abs(round(self.__backtest_results['average_profit']/self.__backtest_results['average_loss'],2)))
         print('Total Net profit: \t\t', round(self.__backtest_results['returns'], 2))
         print('Percentual return: \t\t', round(self.__backtest_results['perc_returns'],2), '%\n')
+        print('Number of trades: \t\t', round(self.__backtest_results['total_trades'],2))
+        print('Number of bought trades: \t', round(self.__backtest_results['total_bought'],2))
+        print('Number of sold trades: \t\t', round(self.__backtest_results['total_sold'],2), '\n')
         print('Balance Drawdown Maximal: \t', round(self.__backtest_results['max_drawdown'],2))
         print('Balance Drawdown Maximal Time Range:', self.__dateInitDD, ' until ', self.__dateEndDD)
         

@@ -1,8 +1,8 @@
 from datetime import datetime
 import pandas as pd
-from src.Trade import Trade
-from src.Order import Order
-from src.Report import Report
+from src.models.Trade import Trade
+from src.models.Order import Order
+from src.data_analysis.Report import Report
 from src.TradeLogic import TradeLogic
 
 class Backtest():
@@ -14,7 +14,8 @@ class Backtest():
             trade_logic: TradeLogic,
             max_history: int=100,
             plot_report: bool=False,
-            backtest_name: str=None
+            backtest_name: str=None,
+            limit_history: int=None
         ):
         self.trades = []
         self.__symbol=symbol
@@ -25,6 +26,8 @@ class Backtest():
         self.__max_history=max_history
         self.__plot_report=plot_report
         self.__name=backtest_name
+        self.__limit_history=limit_history
+        self.__trade_logic.set_full_history(self.__mkt_data)
 
     def run(self):
         print('\r\nInitializing backtest\r\n')
@@ -32,8 +35,8 @@ class Backtest():
             if i == 0:
                 continue
             last=True if i == len(self.__mkt_data)-1 else False
-            to_pred=self.__mkt_data[:i]
-            self.__trade_logic_predict(to_pred, last)
+            to_pred=(self.__mkt_data[:i] if i<self.__limit_history else self.__mkt_data[(i-self.__limit_history):i]) if self.__limit_history else self.__mkt_data[:i]
+            self.__trade_logic_predict(to_pred, i, last)
         print('\r\nFinish backtest\r\n')
         self.__report=Report(self.__name,self.__symbol,self.trades)
         if self.__plot_report:
@@ -43,7 +46,7 @@ class Backtest():
     def get_report_pointer(self):
         return self.__report
 
-    def __trade_logic_predict(self, history, last=False):
+    def __trade_logic_predict(self, history, step, last=False):
         try:
             date = pd.to_datetime(history[-1][0])
             curr_close_price = history[-2][4]
@@ -52,7 +55,7 @@ class Backtest():
 
         self.__trade_logic.update(history,self.__curr_trade)
 
-        signal=self.__trade_logic.trade_logic()
+        signal=self.__trade_logic.trade_logic(step)
 
         if self.__curr_trade != None:
             self.__curr_trade.main(history[-1])

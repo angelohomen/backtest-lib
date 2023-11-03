@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from src.Order import Order
+from src.models.Order import Order
 
 class Trade():
         # Trade state
