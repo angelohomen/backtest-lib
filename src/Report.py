@@ -219,7 +219,6 @@ class Report():
         auxMonth = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['EntryTime'].dt.month_name()).mean()
 
         if len(auxMonth.index) > 1: 
-            # Cria condição para a escolha da Color
             cond = [(auxMonth['TradeResult']>=0.0), (auxMonth['TradeResult']<0.0)]
             esc = ['High', 'Low']
             auxMonth['Color'] = np.select(cond, esc, default=None)
