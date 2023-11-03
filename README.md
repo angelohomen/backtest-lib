@@ -3,7 +3,7 @@ This repository is meant to be a pseudo-generic backtest for algotrading in pyth
 
 Clone:
 
-``sh
+```sh
 
 ~> git clone --branch main https://github.com/angelohomen/backtest-lib.git
 ~> cd backtest-lib
