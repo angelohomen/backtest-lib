@@ -10,6 +10,10 @@ from src.Trade import Trade
 
 class Report():
     def __init__(self, name, symbol, trades):
+        self.__can_generate_report = len(trades)>0
+        if not self.__can_generate_report:
+            return print('No trades')
+
         self.__report_data=pd.DataFrame(list(map(lambda x: {
             'EntryTime': x.get_trade_info()['trade_creation_time'],
             'ExitTime': x.get_trade_info()['trade_out_time'],
@@ -26,6 +30,9 @@ class Report():
         self.__name=name
 
     def __calculate_parameters(self):
+        if not self.__can_generate_report:
+            return print('No trades')
+
         self.__result_df=self.__report_data.copy()
         self.__result_df['EntryTime'] = pd.to_datetime(self.__result_df['EntryTime'])
         self.__result_df.loc[self.__result_df['TradeResult']>0,'TradeType'] = 'Profit'
@@ -100,6 +107,9 @@ class Report():
         return self.__backtest_results
 
     def plot_report(self):
+        if not self.__can_generate_report:
+            return print('No trades')
+
         if self.__name:
             print(f'\r\n\t\t\t\t\tTrading {self.__name} ({self.__symbol}) backtest:\r\n')
         else:
@@ -209,7 +219,6 @@ class Report():
         auxMonth = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['EntryTime'].dt.month_name()).mean()
 
         if len(auxMonth.index) > 1: 
-            # Cria condição para a escolha da Color
             cond = [(auxMonth['TradeResult']>=0.0), (auxMonth['TradeResult']<0.0)]
             esc = ['High', 'Low']
             auxMonth['Color'] = np.select(cond, esc, default=None)
