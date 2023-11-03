@@ -9,6 +9,12 @@ warnings.filterwarnings('ignore')
 
 class Prices():
     def __init__(self) -> None:
+        '''
+            "Prices()" is a class to get an overview from a price dataframe.
+            --------------------------------------------------------------------------
+                Parameters
+                    None
+        '''
         pass
 
     def general_report(self, price_df) -> None:

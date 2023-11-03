@@ -9,6 +9,18 @@ class TradeLogic():
         stop_loss: float=0,
         take_profit: float=0
         ):
+        '''
+            "TradeLogic()" is a class with all algo logics to trade, called by backtest. Do not delete set_full_history, update, trade_logic, close_trade_logic or modify_logic functions.
+            When you don't need these, its just return a default value like False or 0.
+            --------------------------------------------------------------------------
+                Parameters
+                    qty -> float:
+                        Order quantity.
+                    stop_loss -> float (optional):
+                        Order stop price.
+                    take_profit -> float (optional):
+                        Order stop price.
+        '''
         self.__history=None
         self.qty=abs(qty)
         self.stop_loss=abs(stop_loss)
@@ -16,6 +28,7 @@ class TradeLogic():
         self.new_sl=0
         self.new_tp=0
         self.__trade:Trade=None
+        self.__signal=None
 
     def set_full_history(self, full_history):
         self.__full_history=full_history
@@ -30,6 +43,7 @@ class TradeLogic():
         self.__trade=trade
 
     def trade_logic(self, step) -> int:
+        self.__step=step
         try:
             date = pd.to_datetime(self.__history[-1][0])
             curr_close_price = self.__history[-2][4]
@@ -37,9 +51,10 @@ class TradeLogic():
             curr_ema = self.ema[step-1]
             buy_signal=curr_sma>curr_ema and curr_close_price>curr_sma
             sell_signal=curr_sma<curr_ema and curr_close_price<curr_sma
-
-            return 1 if buy_signal else -1 if sell_signal else 0
+            self.__signal=1 if buy_signal else -1 if sell_signal else 0
+            return self.__signal
         except:
+            self.__signal=0
             return 0
 
     def close_trade_logic(self):
@@ -49,20 +64,32 @@ class TradeLogic():
         try:
             date = pd.to_datetime(self.__history[-1][0])
             curr_close_price = self.__history[-2][4]
-            curr_signal=self.trade_logic()
-            if curr_signal==0:
+            if self.__signal==0:
                 return False
-            if curr_signal==1:
+            if self.__signal==1:
                 if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
-                    self.new_sl=curr_close_price-self.stop_loss
-                    self.new_tp=curr_close_price+self.take_profit
-                    return True
-            if curr_signal==-1:
+                    update=False
+                    new_sl=curr_close_price-self.stop_loss
+                    new_tp=curr_close_price+self.take_profit
+                    if self.__trade.get_trade_info()['entry_order']['stop_price']<new_sl:
+                        self.new_sl=new_sl
+                        update=True
+                    if self.__trade.get_trade_info()['entry_order']['take_price']>new_tp:
+                        self.new_tp=new_tp
+                        update=True
+                    return update
+            if self.__signal==-1:
                 if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
-                    self.new_sl=curr_close_price+self.stop_loss
-                    self.new_tp=curr_close_price-self.take_profit
-                    return True
+                    update=False
+                    new_sl=curr_close_price+self.stop_loss
+                    new_tp=curr_close_price-self.take_profit
+                    if self.__trade.get_trade_info()['entry_order']['stop_price']>new_sl:
+                        self.new_sl=new_sl
+                        update=True
+                    if self.__trade.get_trade_info()['entry_order']['take_price']<new_tp:
+                        self.new_tp=new_tp
+                        update=True
+                    return update
             return False
         except:
             return False
-        return False

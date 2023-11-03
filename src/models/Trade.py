@@ -13,6 +13,15 @@ class Trade():
     ENUM_TRADE_SIDE_SOLD='SOLD'
 
     def __init__(self, entry_order: Order, bot_id: int=-1):
+        '''
+            "Trade()" class is a model for trades. It manages entry and out orders.
+            --------------------------------------------------------------------------
+                Parameters
+                    entry_order -> Order:
+                        Entry order object.
+                    bot_id -> int (optional):
+                        Bot ID to manage more than one, if needed.
+        '''
         self.__bot_id=bot_id
         self.__trade_id=str(uuid.uuid4())
         self.__entry_order:Order=entry_order
@@ -40,20 +49,22 @@ class Trade():
         if not self.__trade_state==self.ENUM_TRADE_STATE_OPEN:
             return
         time = last_mktdata[0]
+        high_price = last_mktdata[2]
+        low_price = last_mktdata[3]
         last_price = last_mktdata[4]
         entry_order_info = self.__entry_order.get_order_info()
         if entry_order_info['order_status']==Order.ENUM_ORDER_STATUS_FILLED:
             if entry_order_info['stop_price'] != 0 or entry_order_info['take_price'] != 0:
                 if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
-                    if last_price>=entry_order_info['take_price']:
-                        self.close_trade(last_price, time)
-                    if last_price<=entry_order_info['stop_price']:
-                        self.close_trade(last_price, time)
+                    if entry_order_info['take_price']!=0 and high_price>=entry_order_info['take_price']:
+                        self.close_trade(entry_order_info['take_price'], time)
+                    if entry_order_info['stop_price']!=0 and low_price<=entry_order_info['stop_price']:
+                        self.close_trade(entry_order_info['stop_price'], time)
                 if entry_order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
-                    if last_price<=entry_order_info['take_price']:
-                        self.close_trade(last_price, time)
-                    if last_price>=entry_order_info['stop_price']:
-                        self.close_trade(last_price, time)
+                    if entry_order_info['take_price']!=0 and low_price<=entry_order_info['take_price']:
+                        self.close_trade(entry_order_info['take_price'], time)
+                    if entry_order_info['stop_price']!=0 and high_price>=entry_order_info['stop_price']:
+                        self.close_trade(entry_order_info['stop_price'], time)
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_OPEN:
             if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
                 if last_price>=entry_order_info['price'] or entry_order_info['price']==0:
