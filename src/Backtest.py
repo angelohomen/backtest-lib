@@ -3,6 +3,7 @@ import pandas as pd
 from src.Trade import Trade
 from src.Order import Order
 from src.Report import Report
+from src.TradeLogic import TradeLogic
 
 class Backtest():
 
@@ -10,6 +11,7 @@ class Backtest():
             self, 
             symbol: str, 
             mkt_data: list,
+            trade_logic: TradeLogic,
             max_history: int=100,
             plot_report: bool=False,
             backtest_name: str=None
@@ -17,6 +19,7 @@ class Backtest():
         self.trades = []
         self.__symbol=symbol
         self.__mkt_data=mkt_data
+        self.__trade_logic=trade_logic
         self.__curr_trade:Trade=None
         self.__report=None
         self.__max_history=max_history
@@ -30,7 +33,7 @@ class Backtest():
                 continue
             last=True if i == len(self.__mkt_data)-1 else False
             to_pred=self.__mkt_data[:i]
-            self.__predict(to_pred, last)
+            self.__trade_logic_predict(to_pred, last)
         print('\r\nFinish backtest\r\n')
         self.__report=Report(self.__name,self.__symbol,self.trades)
         if self.__plot_report:
@@ -40,74 +43,51 @@ class Backtest():
     def get_report_pointer(self):
         return self.__report
 
-    def __predict(self, history, last=False):
+    def __trade_logic_predict(self, history, last=False):
         try:
-            prev_close_price = history[-2][4]
-            curr_close_price = history[-1][4]
             date = pd.to_datetime(history[-1][0])
+            curr_close_price = history[-1][4]
+        except:
+            return print(f'Skipping {history[-1][0]} due to history lack of data.')
 
-            take_profit = 1
-            stop_loss = -0.5
+        self.__trade_logic.new_history(history)
 
-            signal=self.__trade_logic(history)
+        take_profit = 1
+        stop_loss = -0.5
 
-            if self.__curr_trade != None:
-                self.__curr_trade.main(history[-1])
-                if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_CLOSE:
+        signal=self.__trade_logic.trade_logic()
+
+        if self.__curr_trade != None:
+            self.__curr_trade.main(history[-1])
+            if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_CLOSE:
+                self.trades.append(self.__curr_trade)
+                self.__curr_trade=None
+            if last or self.__trade_logic.close_trade_logic():
+                if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
+                    self.__curr_trade.close_trade(curr_close_price, date)
                     self.trades.append(self.__curr_trade)
                     self.__curr_trade=None
-                if last or self.__close_trade_logic(history):
-                    if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
+                    return
+        
+        if signal == 1:
+            if self.__curr_trade != None:
+                if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
+                    if self.__curr_trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
                         self.__curr_trade.close_trade(curr_close_price, date)
                         self.trades.append(self.__curr_trade)
                         self.__curr_trade=None
-                        return
-            
-            if signal == 1:
-                if self.__curr_trade != None:
-                    if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
-                        if self.__curr_trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
-                            self.__curr_trade.close_trade(curr_close_price, date)
-                            self.trades.append(self.__curr_trade)
-                            self.__curr_trade=None
-                        else:
-                            if curr_close_price > prev_close_price and curr_close_price > self.prev_traded_price:
-                                self.__curr_trade.modify_entry_stop_take(curr_close_price + stop_loss,curr_close_price + take_profit)
-                                self.curr_stop_loss = self.__curr_trade.get_trade_info()['entry_order']['stop_price']
-                                self.curr_take_profit = self.__curr_trade.get_trade_info()['entry_order']['take_price']
-                else:
-                    self.prev_traded_price = curr_close_price
-                    self.__curr_trade=Trade(Order(self.__symbol,Order.ENUM_ORDER_SIDE_BUY,1,curr_close_price,date,curr_close_price + stop_loss,curr_close_price + take_profit))
-                    self.curr_stop_loss = self.__curr_trade.get_trade_info()['entry_order']['stop_price']
-                    self.curr_take_profit = self.__curr_trade.get_trade_info()['entry_order']['take_price']
-            if signal == -1:
-                if self.__curr_trade != None:
-                    if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
-                        if self.__curr_trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
-                            self.__curr_trade.close_trade(curr_close_price, date)
-                            self.trades.append(self.__curr_trade)
-                            self.__curr_trade=None
-                        else:
-                            if curr_close_price < prev_close_price and curr_close_price < self.prev_traded_price:
-                                self.__curr_trade.modify_entry_stop_take(curr_close_price - stop_loss,curr_close_price - take_profit)
-                                self.curr_stop_loss = self.__curr_trade.get_trade_info()['entry_order']['stop_price']
-                                self.curr_take_profit = self.__curr_trade.get_trade_info()['entry_order']['take_price']
-                else:
-                    self.prev_traded_price = curr_close_price
-                    self.__curr_trade=Trade(Order(self.__symbol,Order.ENUM_ORDER_SIDE_SELL,1,curr_close_price,date,curr_close_price - stop_loss,curr_close_price - take_profit))
-                    self.curr_stop_loss = self.__curr_trade.get_trade_info()['entry_order']['stop_price']
-                    self.curr_take_profit = self.__curr_trade.get_trade_info()['entry_order']['take_price']
-        except:
-            print(f'Skipping {history[-1][0]} due to history lack of data.')
-
-    def __trade_logic(self, history):
-        try:
-            prev_close_price = history[-2][4]
-            curr_close_price = history[-1][4]
-            return 1 if curr_close_price>prev_close_price else -1 if curr_close_price<prev_close_price else 0
-        except:
-            print(f'Skipping {history[-1][0]} due to history lack of data.')
-            return 0
-
-    def __close_trade_logic(self, history):
-        return False
+                    else:
+                        self.__curr_trade.modify_entry_stop_take(curr_close_price + stop_loss,curr_close_price + take_profit)
+            else:
+                self.__curr_trade=Trade(Order(self.__symbol,Order.ENUM_ORDER_SIDE_BUY,1,curr_close_price,date,curr_close_price + stop_loss,curr_close_price + take_profit))
+        if signal == -1:
+            if self.__curr_trade != None:
+                if self.__curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
+                    if self.__curr_trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
+                        self.__curr_trade.close_trade(curr_close_price, date)
+                        self.trades.append(self.__curr_trade)
+                        self.__curr_trade=None
+                    else:
+                        self.__curr_trade.modify_entry_stop_take(curr_close_price - stop_loss,curr_close_price - take_profit)
+            else:
+                self.__curr_trade=Trade(Order(self.__symbol,Order.ENUM_ORDER_SIDE_SELL,1,curr_close_price,date,curr_close_price - stop_loss,curr_close_price - take_profit))
