@@ -1,5 +1,7 @@
-import MetaTrader5 as mt5
 import pandas as pd
+import MetaTrader5 as mt5
+from src.utils.Log import Log
+from datetime import datetime
 
 timeframes = {
     'TIMEFRAME_M1': mt5.TIMEFRAME_M1,
@@ -44,19 +46,19 @@ class MetaTraderConnection():
         self.__logged_in = None
 
         if self.__logged_in:
-            print('Already connected')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,'MT5 Already connected',datetime.now())
         elif login == 0.0:
             mt5.initialize()
             self.__logged_in = True
             self.__version = mt5.version()
-            print(f'Connect Sucessfully {self.__version}')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'Connect Sucessfully {self.__version}',datetime.now())
         elif not mt5.initialize(server=self.__server, login=self.__login, password=self.__password):
-            print('Could not connect with MT5')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'Could not connect with MT5',datetime.now())
             mt5.shutdown()
         else:
             self.__logged_in = True
             self.__version = mt5.version()
-            print(f'Connect Sucessfully {self.__version}')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'Connect Sucessfully {self.__version}',datetime.now())
    
         self.__position = None
         self.__order = None
@@ -69,18 +71,17 @@ class MetaTraderConnection():
         self.__trade_history = {}
 
     def __del__(self):
-        print(f'Disconnected from {self.__version}')
-
-        # del self.__login
-        # del self.__password
-        # del self.__server
-        # del self.__logged_in
-        # del self.__version
-        # del self.__position
-        # del self.__order
-        # del self.__by_request
-        # del self.__magic_number
-        # del self.__trade_history
+        Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'Disconnected from {self.__version}',datetime.now())
+        del self.__login
+        del self.__password
+        del self.__server
+        del self.__logged_in
+        del self.__version
+        del self.__position
+        del self.__order
+        del self.__by_request
+        del self.__magic_number
+        del self.__trade_history
 
     def __str__(self):
         return f'MetaTrader Connection v. {self.version}'
@@ -208,7 +209,7 @@ class MetaTraderConnection():
         if ticket == None:
             return self.__trade_history
         elif not self.__trade_history[ticket]:
-            print(f'{ticket} not listed on orders history')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'{ticket} not listed on orders history',datetime.now())
             return None
         
         return self.__trade_history[ticket]
@@ -227,16 +228,16 @@ class MetaTraderConnection():
 
     def get_last_trade(self):
         if self.__by_result == None:
-            print('Don\'t have any trade')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,'Don\'t have any trade',datetime.now())
             return None
         
         return self.__by_result
 
     def to_string_orders(self) -> str:
-        print(f'Orders = {self.last_order}')
+        Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'Orders = {self.last_order}',datetime.now())
 
     def to_string_positions(self) -> str:
-        print(f'Positions = {self.__position}')
+        Log.LogMsg(Log.ENUM_MSG_TYPE_INFO,f'Positions = {self.__position}',datetime.now())
 
     def set_magic_number(self, number_magic: int=1233) -> None:
         self.__magic_number = number_magic
@@ -262,7 +263,7 @@ class MetaTraderConnection():
         }
 
         if mt5.order_check(request) == None:
-            print('Order check gone wrong')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'Order check gone wrong',datetime.now())
             return None
 
         result = mt5.order_send(request)
@@ -453,10 +454,10 @@ class MetaTraderConnection():
 
     def position_close_by(self, order_request: int, order_request_by: int):
         if self.get_positions(ticket=order_request.order) == None:
-            print('gone wrong 1')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'Get order error',datetime.now())
             return None
         elif self.get_positions(ticket=order_request_by.order) == None:
-            print('gone wrong 2')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'Get order error',datetime.now())
             return None
 
         request = {
@@ -469,7 +470,7 @@ class MetaTraderConnection():
         result = mt5.order_check(request)
 
         if result == None:
-            print('gone wrong')
+            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'Get order error',datetime.now())
             return None
 
         result = mt5.order_send(request)
