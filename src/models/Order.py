@@ -27,8 +27,6 @@ class Order():
             qty: float,
             price: float,
             time_created: datetime.datetime,
-            stop_price: float=0,
-            take_price: float=0,
             bot_id: int=-1,
             ):
         '''
@@ -45,10 +43,6 @@ class Order():
                         Order price.
                     time_created -> datetime:
                         Time of order placement.
-                    stop_price -> float (optional): | IT MAY BE TRANSFERED TO TRADE CLASS
-                        Order stop price.
-                    take_price -> float (optional): | IT MAY BE TRANSFERED TO TRADE CLASS
-                        Order stop price.
                     bot_id -> int (optional):
                         Bot ID to manage more than one, if needed.
         '''
@@ -58,8 +52,6 @@ class Order():
         self.__side=ENUM_ORDER_SIDE
         self.__qty=qty
         self.__price=price
-        self.__stop_price=stop_price
-        self.__take_price=take_price
         self.__time_created=time_created
         self.__initialize_order_info()
 
@@ -71,10 +63,10 @@ class Order():
         self.__last_fill_qty=0
         self.__last_fill_time=datetime.datetime.min
         if not self.__check_first_inputs():
-            self.__order_status=self.__set_order_status(self.ENUM_ORDER_STATUS_REJECTED)
+            self.__order_status=self.set_order_status(self.ENUM_ORDER_STATUS_REJECTED)
             return False
         else:
-            self.__order_status=self.__set_order_status(self.ENUM_ORDER_STATUS_NEW)
+            self.__order_status=self.set_order_status(self.ENUM_ORDER_STATUS_NEW)
             return True
 
     def __check_first_inputs(self):
@@ -87,7 +79,7 @@ class Order():
     def __set_order_state(self, ENUM_ORDER_STATE: str):
         self.__order_state=ENUM_ORDER_STATE
 
-    def __set_order_status(self, ENUM_ORDER_STATUS: str):
+    def set_order_status(self, ENUM_ORDER_STATUS: str):
         self.__order_status=ENUM_ORDER_STATUS
         if self.__order_status in [self.ENUM_ORDER_STATUS_NEW, self.ENUM_ORDER_STATUS_PARTIALLY_FILLED, self.ENUM_ORDER_STATUS_REPLACED]:
             self.__set_order_state(self.ENUM_ORDER_STATE_OPEN)
@@ -98,7 +90,7 @@ class Order():
 
     def cancel_order(self):
         if(self.__order_state==self.ENUM_ORDER_STATE_OPEN):
-            self.__set_order_status(self.ENUM_ORDER_STATUS_CANCELED)
+            self.set_order_status(self.ENUM_ORDER_STATUS_CANCELED)
             return True
         else:
             return False
@@ -116,28 +108,9 @@ class Order():
         if not self.__validate_replace():
             return False
         if(self.__order_state==self.ENUM_ORDER_STATE_OPEN):
-            self.__set_order_status(self.ENUM_ORDER_STATUS_REPLACED)
+            self.set_order_status(self.ENUM_ORDER_STATUS_REPLACED)
             self.__price=price
             self.__qty=qty
-            return True
-        else:
-            return False
-        
-    def __validate_replace_stop_take(self, stop_price, take_price):
-        if stop_price<0 or take_price<0:
-            return False
-        if stop_price==0 or take_price==0:
-            return False
-        if self.__order_status!=self.ENUM_ORDER_STATUS_FILLED:
-            return False
-        
-    def replace_stop_take(self, stop_price: float=0, take_price: float=0):
-        if not self.__validate_replace_stop_take(stop_price, take_price):
-            return False
-        if(self.__order_state==self.ENUM_ORDER_STATE_CLOSE):
-            self.__set_order_status(self.ENUM_ORDER_STATUS_REPLACED)
-            self.__stop_price=stop_price if stop_price != 0 else self.__stop_price
-            self.__take_price=take_price if take_price != 0 else self.__take_price
             return True
         else:
             return False
@@ -149,7 +122,7 @@ class Order():
         self.__last_fill_qty=abs(last_qty)
         self.__last_fill_price=last_price
         self.__last_fill_time=fill_time
-        self.__set_order_status(order_status)
+        self.set_order_status(order_status)
 
     def get_order_info(self):
         return {
@@ -159,8 +132,6 @@ class Order():
             'side':self.__side,
             'qty':self.__qty,
             'price':self.__price,
-            'stop_price':self.__stop_price,
-            'take_price':self.__take_price,
             'time_created':self.__time_created,
             'avg_fill_price': self.__avg_fill_price,
             'filled_volume': self.__filled_volume,

@@ -6,6 +6,7 @@ class TradeLogic():
     def __init__(
         self,
         qty: float,
+        ENUM_TAKE_STOP_CALC_TYPE: str=Trade.ENUM_TAKE_STOP_CALC_TYPE_PTS,
         stop_loss: float=0,
         take_profit: float=0
         ):
@@ -69,24 +70,24 @@ class TradeLogic():
             if self.__signal==1:
                 if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
                     update=False
-                    new_sl=curr_close_price-self.stop_loss
-                    new_tp=curr_close_price+self.take_profit
-                    if self.__trade.get_trade_info()['entry_order']['stop_price']<new_sl:
+                    new_sl=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, False, True)
+                    new_tp=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, True, True)
+                    if self.__trade.get_stop_price()<new_sl and new_sl>0:
                         self.new_sl=new_sl
                         update=True
-                    if self.__trade.get_trade_info()['entry_order']['take_price']>new_tp:
+                    if self.__trade.get_take_price()>new_tp and new_tp>0:
                         self.new_tp=new_tp
                         update=True
                     return update
             if self.__signal==-1:
                 if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
                     update=False
-                    new_sl=curr_close_price+self.stop_loss
-                    new_tp=curr_close_price-self.take_profit
-                    if self.__trade.get_trade_info()['entry_order']['stop_price']>new_sl:
+                    new_sl=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, False, False)
+                    new_tp=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, True, False)
+                    if self.__trade.get_stop_price()>new_sl and new_sl>0:
                         self.new_sl=new_sl
                         update=True
-                    if self.__trade.get_trade_info()['entry_order']['take_price']<new_tp:
+                    if self.__trade.get_take_price()<new_tp and new_tp>0:
                         self.new_tp=new_tp
                         update=True
                     return update
