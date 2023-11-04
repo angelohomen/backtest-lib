@@ -4,17 +4,19 @@ from src.models.Trade import Trade
 from src.models.Order import Order
 from src.data_analysis.Report import Report
 from src.TradeLogic import TradeLogic
+from src.data_analysis.DataManipulation import DataManipulation
+from src.data_analysis.Prices import Prices
 
 class Backtest():
 
     def __init__(
-            self, 
-            symbol: str, 
-            mkt_data: list,
+            self,
+            symbol: str,
             trade_logic: TradeLogic,
             plot_report: bool=False,
             backtest_name: str=None,
-            limit_history: int=None
+            limit_history: int=None,
+            bot_id: int=-1
         ):
         '''
             "Backtest()" is a class to test a trading algorithm.
@@ -33,9 +35,13 @@ class Backtest():
                     limit_history (optional) -> int:
                         Used to limit history informations to feed the trade logic, with minimum history, backtest will run faster. Do not set a maximum history with a value less than an indicators period.
         '''
+
         self.trades = []
         self.__symbol=symbol
-        self.__mkt_data=mkt_data
+
+        if not self.__initialize_mktdata():
+            return print(f'[ERROR] Fail to download data from {self.__symbol}.')
+        
         self.__trade_logic=trade_logic
         self.__curr_trade:Trade=None
         self.__report=None
@@ -43,6 +49,18 @@ class Backtest():
         self.__name=backtest_name
         self.__limit_history=limit_history
         self.__trade_logic.set_full_history(self.__mkt_data)
+        self.__bot_id=bot_id
+
+        if self.__plot_report:
+            self.__px.general_report(self.__df_ohlc)
+            self.__px.monte_carlo_simulation(self.__df_ohlc, 1, 252, 100000)
+
+    def __initialize_mktdata(self):
+        self.__dm = DataManipulation()
+        self.__px = Prices()
+        self.__df_ohlc = self.__dm.get_symbol_ohlc_df(self.__symbol,'TIMEFRAME_D1',1000000000000)
+        self.__mkt_data=self.__df_ohlc.values
+        return len(self.__mkt_data)>0
 
     def run(self):
         print('\r\nInitializing backtest\r\n')
@@ -123,8 +141,9 @@ class Backtest():
                         ENUM_ORDER_SIDE,
                         qty,
                         price,
-                        time,
-                        price - stop_loss if ENUM_ORDER_SIDE==Order.ENUM_ORDER_SIDE_BUY else price + stop_loss,
-                        price + take_profit if ENUM_ORDER_SIDE==Order.ENUM_ORDER_SIDE_BUY else price - take_profit
-                    )
+                        time
+                    ),
+                    self.__bot_id,
+                    stop_loss,
+                    take_profit
                 )

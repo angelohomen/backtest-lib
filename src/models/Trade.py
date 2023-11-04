@@ -12,7 +12,18 @@ class Trade():
     ENUM_TRADE_SIDE_BOUGHT='BOUGHT'
     ENUM_TRADE_SIDE_SOLD='SOLD'
 
-    def __init__(self, entry_order: Order, bot_id: int=-1):
+        # Trade stop and take type of calculation
+    ENUM_TAKE_STOP_CALC_TYPE_PTS='PTS'
+    ENUM_TAKE_STOP_CALC_TYPE_PCTG='PCTG'
+
+    def __init__(
+            self, 
+            entry_order: Order, 
+            bot_id: int=-1,
+            stop_loss: float=0,
+            take_profit: float=0,
+            ENUM_TAKE_STOP_CALC_TYPE: str=ENUM_TAKE_STOP_CALC_TYPE_PTS,
+        ):
         '''
             "Trade()" class is a model for trades. It manages entry and out orders.
             --------------------------------------------------------------------------
@@ -21,6 +32,10 @@ class Trade():
                         Entry order object.
                     bot_id -> int (optional):
                         Bot ID to manage more than one, if needed.
+                    stop_loss -> float (optional):
+                        Stop loss in points.
+                    take_profit -> float (optional):
+                        Take profit in points.
         '''
         self.__bot_id=bot_id
         self.__trade_id=str(uuid.uuid4())
@@ -28,16 +43,31 @@ class Trade():
         self.__out_order:Order=None
         self.__trade_side=None
         self.__trade_out_time=None
+        self.__stop_loss=stop_loss
+        self.__take_profit=take_profit
+        self.__stop_price=0
+        self.__take_price=0
+        self.__take_stop_calc=ENUM_TAKE_STOP_CALC_TYPE
         if entry_order:
             self.__entry_order=entry_order
             if self.__entry_order.get_order_info()['side']==Order.ENUM_ORDER_SIDE_BUY:
                 self.__set_trade_side(self.ENUM_TRADE_SIDE_BOUGHT)
+                self.__stop_price=self.__entry_order.get_order_info()['avg_fill_price']-self.__stop_loss
+                self.__take_price=self.__entry_order.get_order_info()['avg_fill_price']+self.__take_profit
             else:
                 self.__set_trade_side(self.ENUM_TRADE_SIDE_SOLD)
+                self.__stop_price=self.__entry_order.get_order_info()['avg_fill_price']+self.__stop_loss
+                self.__take_price=self.__entry_order.get_order_info()['avg_fill_price']-self.__take_profit
             self.__set_trade_state(self.ENUM_TRADE_STATE_OPEN)
             self.__trade_creation_time=self.__entry_order.get_order_info()['time_created']
         else:
             self.__set_trade_state(self.ENUM_TRADE_STATE_REJECT)
+
+    def get_stop_price(self):
+        return self.__stop_price
+    
+    def get_take_price(self):
+        return self.__take_price
 
     def __set_trade_state(self, ENUM_TRADE_STATE: str):
         self.__trade_state=ENUM_TRADE_STATE
@@ -54,17 +84,17 @@ class Trade():
         last_price = last_mktdata[4]
         entry_order_info = self.__entry_order.get_order_info()
         if entry_order_info['order_status']==Order.ENUM_ORDER_STATUS_FILLED:
-            if entry_order_info['stop_price'] != 0 or entry_order_info['take_price'] != 0:
+            if self.__stop_price != 0 or self.__take_price != 0:
                 if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
-                    if entry_order_info['take_price']!=0 and high_price>=entry_order_info['take_price']:
-                        self.close_trade(entry_order_info['take_price'], time)
-                    if entry_order_info['stop_price']!=0 and low_price<=entry_order_info['stop_price']:
-                        self.close_trade(entry_order_info['stop_price'], time)
+                    if self.__take_price!=0 and high_price>=self.__take_price:
+                        self.close_trade(self.__take_price, time)
+                    if self.__stop_price!=0 and low_price<=self.__stop_price:
+                        self.close_trade(self.__stop_price, time)
                 if entry_order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
-                    if entry_order_info['take_price']!=0 and low_price<=entry_order_info['take_price']:
-                        self.close_trade(entry_order_info['take_price'], time)
-                    if entry_order_info['stop_price']!=0 and high_price>=entry_order_info['stop_price']:
-                        self.close_trade(entry_order_info['stop_price'], time)
+                    if self.__take_price!=0 and low_price<=self.__take_price:
+                        self.close_trade(self.__take_price, time)
+                    if self.__stop_price!=0 and high_price>=self.__stop_price:
+                        self.close_trade(self.__stop_price, time)
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_OPEN:
             if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
                 if last_price>=entry_order_info['price'] or entry_order_info['price']==0:
@@ -76,14 +106,33 @@ class Trade():
     def modify_entry_stop_take(self, stop_price: float=0, take_price: float=0):
         entry_order_info = self.__entry_order.get_order_info()
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_CLOSE:
-            return self.__entry_order.replace_stop_take(stop_price, take_price)
+            return self.replace_stop_take(stop_price, take_price)
         return False
 
     def modify_entry(self, price: float=0, qty: float=0):
         entry_order_info = self.__entry_order.get_order_info()
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_OPEN:
-            return self.__entry_order.replace_order(price, qty)
+            return self.replace_order(price, qty)
         return False
+    
+    def __validate_replace_stop_take(self, stop_price, take_price):
+        if stop_price<0 or take_price<0:
+            return False
+        if stop_price==0 or take_price==0:
+            return False
+        if self.__entry_order.get_order_info()['order_status']!=Order.ENUM_ORDER_STATUS_FILLED:
+            return False
+        
+    def replace_stop_take(self, stop_price: float=0, take_price: float=0):
+        if not self.__validate_replace_stop_take(stop_price, take_price):
+            return False
+        if(self.__entry_order.get_order_info()['order_state']==Order.ENUM_ORDER_STATE_CLOSE):
+            self.__entry_order.set_order_status(Order.ENUM_ORDER_STATUS_REPLACED)
+            self.__stop_price=stop_price if stop_price != 0 else self.__stop_price
+            self.__take_price=take_price if take_price != 0 else self.__take_price
+            return True
+        else:
+            return False
 
     def cancel_entry(self):
         entry_order_info = self.__entry_order.get_order_info()
@@ -97,20 +146,42 @@ class Trade():
     def close_trade(self, price: float, time: datetime.datetime):
         order_info=self.__entry_order.get_order_info()
         if order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
-            self.__out_order=Order(order_info['symbol'],Order.ENUM_ORDER_SIDE_SELL, order_info['qty'], price, time, 0, 0, self.__bot_id)
+            self.__out_order=Order(order_info['symbol'],Order.ENUM_ORDER_SIDE_SELL, order_info['qty'], price, time, self.__bot_id)
             if self.__out_order:
                 self.__out_order.fill_insert(price, order_info['qty'], time, Order.ENUM_ORDER_STATUS_FILLED)
                 self.__set_trade_state(self.ENUM_TRADE_STATE_CLOSE)
                 self.__trade_out_time=time
                 return True
         if order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
-            self.__out_order=Order(order_info['symbol'],Order.ENUM_ORDER_SIDE_BUY, order_info['qty'], price, time, 0, 0, self.__bot_id)
+            self.__out_order=Order(order_info['symbol'],Order.ENUM_ORDER_SIDE_BUY, order_info['qty'], price, time, self.__bot_id)
             if self.__out_order:
                 self.__out_order.fill_insert(price, order_info['qty'], time, Order.ENUM_ORDER_STATUS_FILLED)
                 self.__set_trade_state(self.ENUM_TRADE_STATE_CLOSE)
                 self.__trade_out_time=time
                 return True
         return False
+    
+    def calculate_take_stop(self, price, value, is_take=True, bought=True):
+        if self.__take_stop_calc==self.ENUM_TAKE_STOP_CALC_TYPE_PCTG:
+            if is_take and bought:
+                return price*(1+value)
+            if not is_take and bought:
+                return price*(1-value)
+            if is_take and not bought:
+                return price*(1-value)
+            if not is_take and not bought:
+                return price*(1+value)
+        elif self.__take_stop_calc==self.ENUM_TAKE_STOP_CALC_TYPE_PTS:
+            if is_take and bought:
+                return price+value
+            if not is_take and bought:
+                return price-value
+            if is_take and not bought:
+                return price-value
+            if not is_take and not bought:
+                return price+value
+        else:
+            return print(f'[ERROR] Calculation {self.__take_stop_calc} is not available.')
 
     def get_trade_info(self):
         return {
