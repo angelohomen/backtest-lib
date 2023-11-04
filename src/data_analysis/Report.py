@@ -29,10 +29,7 @@ class Report():
             'EntryTime': x.get_trade_info()['trade_creation_time'],
             'ExitTime': x.get_trade_info()['trade_out_time'],
             'TradeSide': x.get_trade_info()['trade_side'],
-            'TradeResult': 
-                x.get_trade_info()['entry_order']['avg_fill_price']*x.get_trade_info()['entry_order']['filled_volume']-x.get_trade_info()['out_order']['avg_fill_price']*x.get_trade_info()['out_order']['filled_volume']
-                if x.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT else
-                -x.get_trade_info()['entry_order']['avg_fill_price']*x.get_trade_info()['entry_order']['filled_volume']+x.get_trade_info()['out_order']['avg_fill_price']*x.get_trade_info()['out_order']['filled_volume']
+            'TradeResult': x.get_trade_info()['trade_result']
         },trades)))
         self.__result_df=pd.DataFrame()
         self.__calculate_parameters()
@@ -118,6 +115,7 @@ class Report():
             'average_profit': medProfit,
             'average_loss': medLoss,
             'max_drawdown': MDD,
+            'max_drawdown_perc': MDD/self.__initBalance,
             'returns': returns,
             'perc_returns': retornoPerc
         }
@@ -152,6 +150,7 @@ class Report():
         print('Bought trades: \t\t\t', round(self.__backtest_results['total_bought'],2))
         print('Sold trades: \t\t\t', round(self.__backtest_results['total_sold'],2), '\n')
         print('Balance Drawdown Maximal: \t', round(self.__backtest_results['max_drawdown'],2))
+        print('Balance Drawdown Maximal (%): \t', round(self.__backtest_results['max_drawdown_perc']*100,2))
         print('Balance Drawdown Maximal Time Range:', self.__dateInitDD, ' until ', self.__dateEndDD)
         
         fig = plt.figure(figsize=(15, 25))
