@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-# %matplotlib inline
 import seaborn as sns
 import yfinance as yf
 import warnings
@@ -142,10 +141,10 @@ class Report():
         print('Losing trades: \t\t', self.__backtest_results['qty_loss'])
         print('Largest profit trade:\t\t', round(self.__backtest_results['max_winner_result'],2), end='\t\t\t\t')
         print('Largest loss trade:\t', round(self.__backtest_results['max_loss_result'],2))
-        print('Average profit trade: \t\t', round(self.__backtest_results['average_profit'],2), end='\t\t\t\t\n')
+        print('Average profit trade: \t\t', round(self.__backtest_results['average_profit'],2), end='\t\t\t\t')
+        print('Average loss trade: \t', round(self.__backtest_results['average_loss'],2), '\n')
         print('Profit trades (% of total): \t', round(self.__backtest_results['profit_trades_perc'],2),'%\n')
         print('Profit factor: \t\t\t', round(self.__backtest_results['profit_factor'],2))
-        print('Average loss trade: \t\t', round(self.__backtest_results['average_loss'],2))
         print('Profit/Loss: \t\t\t', abs(round(self.__backtest_results['average_profit']/self.__backtest_results['average_loss'],2)))
         print('Total Net profit: \t\t', round(self.__backtest_results['returns'], 2))
         print('Percentual return: \t\t', round(self.__backtest_results['perc_returns'],2), '%\n')
