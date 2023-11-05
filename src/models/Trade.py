@@ -18,6 +18,10 @@ class Trade():
     ENUM_TAKE_STOP_CALC_TYPE_PTS='PTS'
     ENUM_TAKE_STOP_CALC_TYPE_PCTG='PCTG'
 
+    @staticmethod
+    def OPT_ENUM_TAKE_STOP_CALC_TYPE():
+        return [Trade.ENUM_TAKE_STOP_CALC_TYPE_PTS,Trade.ENUM_TAKE_STOP_CALC_TYPE_PCTG]
+
     def __init__(
             self, 
             entry_order: Order, 

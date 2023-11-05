@@ -18,8 +18,16 @@ class AveragesCross():
         self.initialize_indicators(full_history)
 
     def initialize_indicators(self,full_history):
-        self.__slow_ma=MovingAverage(full_history,self.__slow_ma_inputs).get_ma()
-        self.__fast_ma=MovingAverage(full_history,self.__fast_ma_inputs).get_ma()
+        self.__slow_ma_buff=MovingAverage(full_history,self.__slow_ma_inputs)
+        self.__slow_ma=self.__slow_ma_buff.get_ma()
+        self.__fast_ma_buff=MovingAverage(full_history,self.__fast_ma_inputs)
+        self.__fast_ma=self.__fast_ma_buff.get_ma()
+
+    def get_movings_averages(self):
+        return {
+            'fast': self.__fast_ma_buff,
+            'slow': self.__slow_ma_buff
+        }
 
     def trade_logic(self, history, step) -> int:
         if len(history)<2:

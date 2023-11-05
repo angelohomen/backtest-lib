@@ -37,6 +37,37 @@ class Backtest():
     ENUM_TIMEFRAME_Y5='TIMEFRAME_Y5'
     ENUM_TIMEFRAME_Y10='TIMEFRAME_Y10'
 
+    @staticmethod
+    def OPT_ENUM_TIMEFRAME():
+        return [
+            Backtest.ENUM_TIMEFRAME_M1,
+            Backtest.ENUM_TIMEFRAME_M2,
+            Backtest.ENUM_TIMEFRAME_M3,
+            Backtest.ENUM_TIMEFRAME_M4,
+            Backtest.ENUM_TIMEFRAME_M5,
+            Backtest.ENUM_TIMEFRAME_M6,
+            Backtest.ENUM_TIMEFRAME_M10,
+            Backtest.ENUM_TIMEFRAME_M12,
+            Backtest.ENUM_TIMEFRAME_M15,
+            Backtest.ENUM_TIMEFRAME_M20,
+            Backtest.ENUM_TIMEFRAME_M30,
+            Backtest.ENUM_TIMEFRAME_H1,
+            Backtest.ENUM_TIMEFRAME_H2,
+            Backtest.ENUM_TIMEFRAME_H3,
+            Backtest.ENUM_TIMEFRAME_H4,
+            Backtest.ENUM_TIMEFRAME_H6,
+            Backtest.ENUM_TIMEFRAME_H8,
+            Backtest.ENUM_TIMEFRAME_H12,
+            Backtest.ENUM_TIMEFRAME_D1,
+            Backtest.ENUM_TIMEFRAME_W1,
+            Backtest.ENUM_TIMEFRAME_MN1,
+            Backtest.ENUM_TIMEFRAME_MN3,
+            Backtest.ENUM_TIMEFRAME_Y1,
+            Backtest.ENUM_TIMEFRAME_Y2,
+            Backtest.ENUM_TIMEFRAME_Y5,
+            Backtest.ENUM_TIMEFRAME_Y10,
+            ]
+
     def __init__(
             self,
             symbol: str,

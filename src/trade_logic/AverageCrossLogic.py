@@ -1,4 +1,6 @@
+from iteration_utilities import unique_everseen
 import pandas as pd
+from datetime import datetime
 from src.utils.Log import Log
 from src.utils.TimeToTrade import TimeToTrade
 from src.models.Trade import Trade
@@ -11,9 +13,9 @@ from src.trading_strategies.averages_cross import AveragesCross
 class AverageCrossLogic():
     @staticmethod
     def INPUTS_AC_LOGIC(
-        fast_ma_inputs: dict=MovingAverage.INPUTS_MA(),
-        slow_ma_inputs: dict=MovingAverage.INPUTS_MA(),
-        trading_time: TimeToTrade=None
+        fast_ma_inputs: dict=MovingAverage.INPUTS_MA(9),
+        slow_ma_inputs: dict=MovingAverage.INPUTS_MA(20),
+        trading_time: TimeToTrade=TimeToTrade('09:00:00', '16:00:00', '17:00:00')
     ):
         return {
             'fast_ma_inputs': fast_ma_inputs,
@@ -27,7 +29,7 @@ class AverageCrossLogic():
         ENUM_TAKE_STOP_CALC_TYPE: str=Trade.ENUM_TAKE_STOP_CALC_TYPE_PTS,
         stop_loss: float=0,
         take_profit: float=0,
-        INPUTS:dict=INPUTS_AC_LOGIC
+        INPUTS=None
         ):
         '''
             "AverageCrossLogic()" is a class with all algo logics to trade, called by backtest. Do not delete set_full_history, update, trade_logic, close_trade_logic or modify_logic functions.
@@ -48,6 +50,7 @@ class AverageCrossLogic():
                         trading_time -> TimeToTrade. Valid to intraday backtesting, None to diary.
 
         '''
+        if not INPUTS: self.INPUTS_AC_LOGIC()
         self.__history=None
         self.qty=abs(qty)
         self.stop_loss=abs(stop_loss)
@@ -58,11 +61,24 @@ class AverageCrossLogic():
         self.__trade:Trade=None
         self.__signal=None
         self.__dm=DataManipulation()
-        self.__time_trade=INPUTS['trading_time']
+        self.__INPUTS=INPUTS
+        self.__time_trade=self.__INPUTS['trading_time']
 
         # indicators inputs
-        self.__fast_ma_inputs=INPUTS['fast_ma_inputs']
-        self.__slow_ma_inputs=INPUTS['slow_ma_inputs']
+        self.__fast_ma_inputs=self.__INPUTS['fast_ma_inputs']
+        self.__slow_ma_inputs=self.__INPUTS['slow_ma_inputs']
+
+    def get_current_inputs(self):
+        return ({
+            'qty': self.qty,
+            'ENUM_TAKE_STOP_CALC_TYPE': self.take_stop_calc,
+            'stop_loss': self.stop_loss,
+            'take_profit': self.take_profit
+        }|{
+            f'fast_ma_{k}': v for k, v in self.__average_cross.get_movings_averages()['fast'].get_current_inputs().items()
+        }|{
+            f'slow_ma_{k}': v for k, v in self.__average_cross.get_movings_averages()['slow'].get_current_inputs().items()
+        })
 
     def set_full_history(self, full_history):
         self.__full_history=full_history
@@ -174,3 +190,40 @@ class AverageCrossLogic():
                     update=True
                 return update
         return False
+    
+    def optimize_possibilities(
+        self,
+        stop_loss=[],
+        take_profit=[],
+        slow_ma_calc_type=[],
+        slow_ma_period=[],
+        fast_ma_calc_type=[],
+        fast_ma_period=[],
+        time_to_open_trades=[],
+        time_to_stop_open=[],
+        time_to_close_trades=[]
+    ):
+        stop_loss=stop_loss if len(stop_loss)>0 else [self.stop_loss]
+        take_profit=take_profit if len(take_profit)>0 else [self.take_profit]
+        slow_ma_calc_type=slow_ma_calc_type if len(slow_ma_calc_type)>0 else [self.__slow_ma_inputs['ENUM_AVERAGE_TYPE']]
+        slow_ma_period=slow_ma_period if len(slow_ma_period)>0 else [self.__slow_ma_inputs['period']]
+        fast_ma_calc_type=fast_ma_calc_type if len(fast_ma_calc_type)>0 else [self.__fast_ma_inputs['ENUM_AVERAGE_TYPE']]
+        fast_ma_period=fast_ma_period if len(fast_ma_period)>0 else [self.__fast_ma_inputs['period']]
+        time_to_open_trades=time_to_open_trades if len(time_to_open_trades)>0 else [self.__time_trade.time_to_open_trades]
+        time_to_stop_open=time_to_stop_open if len(time_to_stop_open)>0 else [self.__time_trade.time_to_stop_open]
+        time_to_close_trades=time_to_close_trades if len(time_to_close_trades)>0 else [self.__time_trade.time_to_close_trades]
+
+        return [
+            AverageCrossLogic(
+                qty=self.qty, 
+                ENUM_TAKE_STOP_CALC_TYPE=self.take_stop_calc, 
+                stop_loss=sl, 
+                take_profit=tp, 
+                INPUTS=AverageCrossLogic.INPUTS_AC_LOGIC(
+                    fast_ma_inputs=MovingAverage.INPUTS_MA(fast_calc, fast_period),
+                    slow_ma_inputs=MovingAverage.INPUTS_MA(slow_calc, slow_period),
+                    trading_time=TimeToTrade(tm_op, tm_stp, tm_cls)
+                )
+            )
+            for sl in stop_loss for tp in take_profit for slow_calc in slow_ma_calc_type for slow_period in slow_ma_period for fast_calc in fast_ma_calc_type for fast_period in fast_ma_period for tm_op in time_to_open_trades for tm_stp in time_to_stop_open for tm_cls in time_to_close_trades
+        ]
