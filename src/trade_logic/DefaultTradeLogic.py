@@ -49,6 +49,17 @@ class DefaultTradeLogic():
         self.__trade:Trade=None
         self.__signal=None
         self.__dm=DataManipulation()
+        self.__INPUTS=INPUTS
+
+    def get_current_inputs(self):
+        return {
+            'qty': self.qty,
+            'ENUM_TAKE_STOP_CALC_TYPE': self.take_stop_calc,
+            'stop_loss': self.stop_loss,
+            'take_profit': self.take_profit,
+            'input1': self.__INPUTS['input1'],
+            'input2': self.__INPUTS['input2']
+        }
 
     def set_full_history(self, full_history):
         self.__full_history=full_history
