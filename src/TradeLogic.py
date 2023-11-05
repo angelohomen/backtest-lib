@@ -10,8 +10,7 @@ class TradeLogic():
         qty: float,
         ENUM_TAKE_STOP_CALC_TYPE: str=Trade.ENUM_TAKE_STOP_CALC_TYPE_PTS,
         stop_loss: float=0,
-        take_profit: float=0,
-        log: str=False
+        take_profit: float=0
         ):
         '''
             "TradeLogic()" is a class with all algo logics to trade, called by backtest. Do not delete set_full_history, update, trade_logic, close_trade_logic or modify_logic functions.
@@ -29,7 +28,6 @@ class TradeLogic():
                     log -> bool (optional):
                         Set True if want to retrieve bot logs.
         '''
-        self.log=log
         self.__history=None
         self.qty=abs(qty)
         self.stop_loss=abs(stop_loss)
@@ -70,12 +68,12 @@ class TradeLogic():
             if self.__signal == 1:
                 if self.__trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
                     if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
-                        if self.log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Close trade ({self.__trade.get_trade_info()["trade_id"]}) logic due to inverse signal.',time=self.__time)
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Close trade ({self.__trade.get_trade_info()["trade_id"]}) logic due to inverse signal.',time=self.__time)
                         return True
             if self.__signal == -1:
                 if self.__trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
                     if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
-                        if self.log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Close trade ({self.__trade.get_trade_info()["trade_id"]}) logic due to inverse signal.',time=self.__time)
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Close trade ({self.__trade.get_trade_info()["trade_id"]}) logic due to inverse signal.',time=self.__time)
                         return True
         return False
 

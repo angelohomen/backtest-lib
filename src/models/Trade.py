@@ -24,8 +24,7 @@ class Trade():
             bot_id: int=-1,
             stop_loss: float=0,
             take_profit: float=0,
-            ENUM_TAKE_STOP_CALC_TYPE: str=ENUM_TAKE_STOP_CALC_TYPE_PTS,
-            log: str=False
+            ENUM_TAKE_STOP_CALC_TYPE: str=ENUM_TAKE_STOP_CALC_TYPE_PTS
         ):
         '''
             "Trade()" class is a model for trades. It manages entry and out orders.
@@ -60,8 +59,7 @@ class Trade():
         self.__trade_creation_time=datetime.min
         self.__trade_out_time=datetime.min
         self.__dm=DataManipulation()
-        self.__log=log
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) created.')
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) created.')
 
     def __set_entry_order_params(self):
         if self.__entry_order:
@@ -77,9 +75,9 @@ class Trade():
                     self.__take_price=self.calculate_take_stop(entry_price,self.__take_profit,True,False)
                 self.__set_trade_state(self.ENUM_TRADE_STATE_OPEN)
                 self.__trade_creation_time=self.__entry_order.get_order_info()['time_created']
-                if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) entry price= {entry_price}.',time=self.__trade_creation_time)
-                if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) stop price= {self.__stop_price}.',time=self.__trade_creation_time)
-                if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) take price= {self.__take_price}.',time=self.__trade_creation_time)
+                Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) entry price= {entry_price}.',time=self.__trade_creation_time)
+                Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) stop price= {self.__stop_price}.',time=self.__trade_creation_time)
+                Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) take price= {self.__take_price}.',time=self.__trade_creation_time)
 
     def get_stop_price(self):
         return self.__stop_price
@@ -88,11 +86,11 @@ class Trade():
         return self.__take_price
 
     def __set_trade_state(self, ENUM_TRADE_STATE: str):
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) {ENUM_TRADE_STATE}.')
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) {ENUM_TRADE_STATE}.')
         self.__trade_state=ENUM_TRADE_STATE
 
     def __set_trade_side(self, ENUM_TRADE_SIDE: str):
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) {ENUM_TRADE_SIDE}.')
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) {ENUM_TRADE_SIDE}.')
         self.__trade_side=ENUM_TRADE_SIDE
 
     def main(self, last_mktdata):
@@ -106,19 +104,19 @@ class Trade():
         if entry_order_info['order_status']==Order.ENUM_ORDER_STATUS_FILLED:
             if self.__stop_price != 0 or self.__take_price != 0:
                 if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
-                    if self.__take_price!=0 and high_price>=self.__take_price:
-                        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Take profit.',time=self.__time)
-                        self.close_trade(self.__take_price)
                     if self.__stop_price!=0 and low_price<=self.__stop_price:
-                        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Stop loss.',time=self.__time)
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Stop loss.',time=self.__time)
                         self.close_trade(self.__stop_price)
-                if entry_order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
-                    if self.__take_price!=0 and low_price<=self.__take_price:
-                        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Take profit.',time=self.__time)
+                    if self.__take_price!=0 and high_price>=self.__take_price:
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Take profit.',time=self.__time)
                         self.close_trade(self.__take_price)
+                if entry_order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
                     if self.__stop_price!=0 and high_price>=self.__stop_price:
-                        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Stop loss.',time=self.__time)
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Stop loss.',time=self.__time)
                         self.close_trade(self.__stop_price)
+                    if self.__take_price!=0 and low_price<=self.__take_price:
+                        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Take profit.',time=self.__time)
+                        self.close_trade(self.__take_price)
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_OPEN:
             if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
                 if last_price>=entry_order_info['price'] or entry_order_info['price']==0:
@@ -156,9 +154,9 @@ class Trade():
             self.__entry_order.set_order_status(Order.ENUM_ORDER_STATUS_REPLACED)
             self.__stop_price=stop_price if stop_price != 0 else self.__stop_price
             self.__take_price=take_price if take_price != 0 else self.__take_price
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) replacing.',time=self.__time)
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) new stop price= {self.__stop_price}.',time=self.__time)
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) new take price= {self.__take_price}.',time=self.__time)
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) replacing.',time=self.__time)
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) new stop price= {self.__stop_price}.',time=self.__time)
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) new take price= {self.__take_price}.',time=self.__time)
             return True
         else:
             return False
@@ -210,7 +208,7 @@ class Trade():
             if not is_take and not bought:
                 return price+value
         else:
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Calculation {self.__take_stop_calc} is not available.',time=datetime.now())
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Calculation {self.__take_stop_calc} is not available.',time=datetime.now())
             return
 
     def get_trade_info(self):

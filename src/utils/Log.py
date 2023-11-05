@@ -1,3 +1,4 @@
+import os
 import datetime
 
 class Log():
@@ -9,6 +10,7 @@ class Log():
 
     @staticmethod
     def LogMsg(ENUM_MSG_TYPE:str,msg:str,time:datetime.datetime=None) -> None:
+        if not os.path.exists('logs'): os.mkdir('logs')
         if not Log.__writer: Log.__writer = open(f"logs/{Log.__name}.log", "w")
         if Log.__writer:
             if time:
@@ -18,7 +20,9 @@ class Log():
 
     @staticmethod
     def LogClose():
-        if Log.__writer: Log.__writer.close()
+        if Log.__writer: 
+            Log.__writer.close()
+            Log.__writer=None
 
     @staticmethod
     def SetLogName(log_name='logs'):
