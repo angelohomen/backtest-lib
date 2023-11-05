@@ -28,8 +28,7 @@ class Order():
             qty: float,
             price: float,
             time_created: datetime.datetime,
-            bot_id: int=-1,
-            log: str=False
+            bot_id: int=-1
             ):
         '''
             "Order()" class is a model for orders.
@@ -47,10 +46,7 @@ class Order():
                         Time of order placement.
                     bot_id -> int (optional):
                         Bot ID to manage more than one, if needed.
-                    log -> bool (optional):
-                        Set True if want to retrieve bot logs.
         '''
-        self.__log=log
         self.__order_id=str(uuid.uuid4())
         self.__symbol=symbol
         self.__bot_id=bot_id
@@ -83,11 +79,11 @@ class Order():
 
     def __set_order_state(self, ENUM_ORDER_STATE: str):
         self.__order_state=ENUM_ORDER_STATE
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Setting order ({self.__order_id}) state to {self.__order_state}.',time=None)
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Setting order ({self.__order_id}) state to {self.__order_state}.',time=None)
 
     def set_order_status(self, ENUM_ORDER_STATUS: str):
         self.__order_status=ENUM_ORDER_STATUS
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Setting order ({self.__order_id}) status to {self.__order_status}.',time=None)
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Setting order ({self.__order_id}) status to {self.__order_status}.',time=None)
         if self.__order_status in [self.ENUM_ORDER_STATUS_NEW, self.ENUM_ORDER_STATUS_PARTIALLY_FILLED, self.ENUM_ORDER_STATUS_REPLACED]:
             self.__set_order_state(self.ENUM_ORDER_STATE_OPEN)
         elif self.__order_status==self.ENUM_ORDER_STATUS_REJECTED:
@@ -100,7 +96,7 @@ class Order():
             self.set_order_status(self.ENUM_ORDER_STATUS_CANCELED)
             return True
         else:
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Cannot cancel order ({self.__order_id}).',time=None)
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Cannot cancel order ({self.__order_id}).',time=None)
             return False
 
     def __validate_replace(self, price, qty):
@@ -119,11 +115,11 @@ class Order():
             self.__qty=qty
             return True
         else:
-            if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Cannot replace order ({self.__order_id}).',time=None)
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Cannot replace order ({self.__order_id}).',time=None)
             return False
 
     def fill_insert(self, last_price: float, last_qty: float, fill_time: datetime.datetime, order_status: str):
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New order ({self.__order_id}) fill.',time=fill_time)
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New order ({self.__order_id}) fill.',time=fill_time)
         self.__fills_list.append(Fill(self.__order_id, self.__side, last_qty, last_price, fill_time).get_fill_info())
         self.__avg_fill_price = last_price if self.__avg_fill_price==0 else ((self.__avg_fill_price*self.__filled_volume)+(last_price*last_qty))/(self.__filled_volume+last_qty)
         self.__filled_volume = abs(self.__filled_volume) + abs(last_qty)
