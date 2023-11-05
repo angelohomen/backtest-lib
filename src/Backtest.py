@@ -3,7 +3,6 @@ import pandas as pd
 from src.utils.Log import Log
 from src.models.Trade import Trade
 from src.models.Order import Order
-from src.TradeLogic import TradeLogic
 from src.data_analysis.Report import Report
 from src.data_analysis.Prices import Prices
 from src.data_analysis.DataManipulation import DataManipulation
@@ -42,7 +41,7 @@ class Backtest():
             self,
             symbol: str,
             ENUM_TIMEFRAME: str,
-            trade_logic: TradeLogic,
+            trade_logic,
             plot_report: bool=False,
             backtest_name: str='test',
             limit_history: int=None,
@@ -79,13 +78,14 @@ class Backtest():
         self.__limit_history=limit_history
         self.__bot_id=bot_id
 
+        if not self.__initialize_mktdata():
+            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Fail to download data from {self.__symbol}.',time=datetime.now())
+            return Exception()
+        
         if self.__plot_report:
             self.__px.general_report(self.__df_ohlc)
             self.__px.monte_carlo_simulation(self.__df_ohlc, 1, 252, 100000)
 
-        if not self.__initialize_mktdata():
-            Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Fail to download data from {self.__symbol}.',time=datetime.now())
-            return
         self.__trade_logic.set_full_history(self.__mkt_data)
 
     def __initialize_mktdata(self):

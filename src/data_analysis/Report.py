@@ -205,7 +205,7 @@ class Report():
                     color='purple', label='MDD')
                 
         # HOUR
-        auxHour = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['EntryTime'].dt.hour).mean()
+        auxHour = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['ExitTime'].dt.hour).mean()
 
         if len(auxHour.index) > 1: 
             cond = [(auxHour['TradeResult']>=0.0), (auxHour['TradeResult']<0.0)]
@@ -221,7 +221,7 @@ class Report():
                         color='#D6675A', ax=axHour)
 
         # WEEK DAYS
-        auxWeek = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['EntryTime'].dt.day_name()).mean()
+        auxWeek = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['ExitTime'].dt.day_name()).mean()
 
         if len(auxWeek.index) > 1: 
             cond = [(auxWeek['TradeResult']>=0.0), (auxWeek['TradeResult']<0.0)]
@@ -237,7 +237,7 @@ class Report():
                         color='#D6675A', ax=axWeek)
 
         #MONTH
-        auxMonth = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['EntryTime'].dt.month_name()).mean()
+        auxMonth = self.__result_df.drop(['TradeType','TradeSide'],axis=1).groupby(by=self.__result_df['ExitTime'].dt.month_name()).mean()
 
         if len(auxMonth.index) > 1: 
             cond = [(auxMonth['TradeResult']>=0.0), (auxMonth['TradeResult']<0.0)]
