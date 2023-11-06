@@ -176,9 +176,9 @@ class Backtest():
         
         if self.__curr_trade == None:
             if signal == 1:
-                self.__curr_trade=self.__new_trade(Order.ENUM_ORDER_SIDE_BUY,self.__trade_logic.qty,0,date,self.__trade_logic.stop_loss,self.__trade_logic.take_profit,self.__trade_logic.take_stop_calc)
+                self.__new_trade(Order.ENUM_ORDER_SIDE_BUY,self.__trade_logic.qty,0,date,self.__trade_logic.stop_loss,self.__trade_logic.take_profit,self.__trade_logic.take_stop_calc,history)
             if signal == -1:
-                self.__curr_trade=self.__new_trade(Order.ENUM_ORDER_SIDE_SELL,self.__trade_logic.qty,0,date,self.__trade_logic.stop_loss,self.__trade_logic.take_profit,self.__trade_logic.take_stop_calc)
+                self.__new_trade(Order.ENUM_ORDER_SIDE_SELL,self.__trade_logic.qty,0,date,self.__trade_logic.stop_loss,self.__trade_logic.take_profit,self.__trade_logic.take_stop_calc,history)
 
     def __trade_finish(self,time):
         Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Append trade ({self.__curr_trade.get_trade_info()["trade_id"]}) to list of done trades.',time=time)
@@ -193,9 +193,10 @@ class Backtest():
             time,
             stop_loss,
             take_profit,
-            calc_type
+            calc_type,
+            history
         ) -> Trade:
-        new_trade=Trade(
+        self.__curr_trade=Trade(
                     Order(
                         self.__symbol,
                         ENUM_ORDER_SIDE,
@@ -208,5 +209,5 @@ class Backtest():
                     take_profit,
                     calc_type
                 )
-        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New trade ({new_trade.get_trade_info()["trade_id"]}).',time=time)
-        return new_trade
+        Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New trade ({self.__curr_trade.get_trade_info()["trade_id"]}).',time=time)
+        self.__curr_trade.main(history[-1])
