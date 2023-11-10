@@ -1,4 +1,3 @@
-from iteration_utilities import unique_everseen
 import pandas as pd
 from datetime import datetime
 from src.utils.Log import Log

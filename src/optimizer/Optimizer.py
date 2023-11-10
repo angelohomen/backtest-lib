@@ -2,10 +2,7 @@ from src.Backtest import Backtest
 from src.utils.Log import Log
 from datetime import datetime
 import multiprocessing
-from multiprocessing import Pool
-
-def unwrap_self_f(arg, **kwarg):
-    return Optimizer.optimize_process(*arg, **kwarg)
+from multiprocessing.pool import ThreadPool
 
 class Optimizer():
     def __init__(
@@ -25,17 +22,14 @@ class Optimizer():
         self.__counter=0
         
     def run(self):
-        # pool = multiprocessing.Pool()
-        # result=pool.map(unwrap_self_f, zip([self]*len(self.__trade_logic), self.__trade_logic))
-        # pool.close()
-        # self.__bt_list=result[:]
-        for tl in self.__trade_logic:
-            self.__bt_list.append(self.optimize_process(tl))
+        t=ThreadPool(processes=multiprocessing.cpu_count())
+        self.__bt_list=t.map(self.__optimize_process, self.__trade_logic)
+        t.close()
 
     def get_list(self):
         return self.__bt_list
     
-    def optimize_process(self, tl):
+    def __optimize_process(self, tl):
         if type(self.__ENUM_TIMEFRAME)==list:
             for timef in self.self.__ENUM_TIMEFRAME:
                 self.__test_timef=timef
@@ -47,7 +41,7 @@ class Optimizer():
             return self.__run_bt(tl, self.__counter)
 
     def __run_bt(self, tl, counter):
-        bt = Backtest(symbol=self.__symbol,ENUM_TIMEFRAME=self.__test_timef,trade_logic=tl,plot_report=False,backtest_name=f'opt/{counter}',limit_history=self.__limit_history)
+        bt = Backtest(symbol=self.__symbol,ENUM_TIMEFRAME=self.__test_timef,trade_logic=tl,plot_report=False,limit_history=self.__limit_history)
         if bt: 
             Log.LogMsg(Log.ENUM_MSG_TYPE_INFO, 'Running backtest with inputs:', time=datetime.now())
             Log.LogMsg(Log.ENUM_MSG_TYPE_INFO, f'OPT {counter} | '+''.join([' | {0}={1} | '.format(k, v) for k,v in tl.get_current_inputs().items()]), time=datetime.now())
