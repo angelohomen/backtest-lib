@@ -78,6 +78,8 @@ class AverageCrossLogic():
             f'fast_ma_{k}': v for k, v in self.__average_cross.get_movings_averages()['fast'].get_current_inputs().items()
         }|{
             f'slow_ma_{k}': v for k, v in self.__average_cross.get_movings_averages()['slow'].get_current_inputs().items()
+        }|{
+            f'{k}': v for k, v in self.__time_trade.get_current_inputs().items()
         })
 
     def set_full_history(self, full_history):

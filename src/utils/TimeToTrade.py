@@ -29,3 +29,10 @@ class TimeToTrade():
     def TimeToCloseTrades(self, current_time):
         current_time=current_time.time()
         return current_time>=self.time_to_close_trades
+    
+    def get_current_inputs(self):
+        return {
+            'time_to_open_trades': self.time_to_open_trades.strftime('%H:%M:%S'),
+            'time_to_stop_open': self.time_to_stop_open.strftime('%H:%M:%S'),
+            'time_to_close_trades': self.time_to_close_trades.strftime('%H:%M:%S')
+        }
