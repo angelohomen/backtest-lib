@@ -170,7 +170,7 @@ class AverageCrossLogic():
             if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_BOUGHT:
                 update=False
                 new_sl=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, False, True)
-                new_tp=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, True, True)
+                new_tp=self.__trade.calculate_take_stop(curr_close_price, self.take_profit, True, True)
                 if self.__trade.get_stop_price()<new_sl and new_sl>0:
                     self.new_sl=new_sl
                     update=True
@@ -182,7 +182,7 @@ class AverageCrossLogic():
             if self.__trade.get_trade_info()['trade_side']==Trade.ENUM_TRADE_SIDE_SOLD:
                 update=False
                 new_sl=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, False, False)
-                new_tp=self.__trade.calculate_take_stop(curr_close_price, self.stop_loss, True, False)
+                new_tp=self.__trade.calculate_take_stop(curr_close_price, self.take_profit, True, False)
                 if self.__trade.get_stop_price()>new_sl and new_sl>0:
                     self.new_sl=new_sl
                     update=True
