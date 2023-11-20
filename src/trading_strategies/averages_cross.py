@@ -33,8 +33,8 @@ class AveragesCross():
     def trade_logic(self, history, step) -> int:
         if len(history)<2:
             return 0
-        self.__curr_fast = self.__fast_ma[step-1]
-        self.__curr_slow = self.__slow_ma[step-1]
+        self.__curr_fast = self.__fast_ma[step-2]
+        self.__curr_slow = self.__slow_ma[step-2]
         buy_signal=self.__curr_fast>self.__curr_slow
         sell_signal=self.__curr_fast<self.__curr_slow
         self.__signal=1 if buy_signal else -1 if sell_signal else 0

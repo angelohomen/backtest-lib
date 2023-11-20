@@ -103,6 +103,7 @@ class Trade():
         if not self.__trade_state in [self.ENUM_TRADE_STATE_OPEN,None]:
             return
         self.__time = last_mktdata[self.__dm.get_data_idx('time')]
+        open_price = last_mktdata[self.__dm.get_data_idx('open')]
         high_price = last_mktdata[self.__dm.get_data_idx('high')]
         low_price = last_mktdata[self.__dm.get_data_idx('low')]
         last_price = last_mktdata[self.__dm.get_data_idx('close')]
@@ -124,13 +125,17 @@ class Trade():
                         if self.__logger: self.__logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Trade ({self.__trade_id}) closing. Take profit.',time=self.__time)
                         self.close_trade(self.__take_price)
         if entry_order_info['order_state']==Order.ENUM_ORDER_STATE_OPEN:
+            if entry_order_info['price']==0:
+                self.__entry_order.fill_insert(open_price, entry_order_info['qty'], self.__time, Order.ENUM_ORDER_STATUS_FILLED)
+                self.__set_entry_order_params()
+                return
             if entry_order_info['side']==Order.ENUM_ORDER_SIDE_BUY:
-                if last_price>=entry_order_info['price'] or entry_order_info['price']==0:
-                    self.__entry_order.fill_insert(last_price, entry_order_info['qty'], self.__time, Order.ENUM_ORDER_STATUS_FILLED)
+                if high_price>=entry_order_info['price']:
+                    self.__entry_order.fill_insert(entry_order_info['price'], entry_order_info['qty'], self.__time, Order.ENUM_ORDER_STATUS_FILLED)
                     self.__set_entry_order_params()
             if entry_order_info['side']==Order.ENUM_ORDER_SIDE_SELL:
-                if last_price<=entry_order_info['price'] or entry_order_info['price']==0:
-                    self.__entry_order.fill_insert(last_price, entry_order_info['qty'], self.__time, Order.ENUM_ORDER_STATUS_FILLED)
+                if low_price<=entry_order_info['price']:
+                    self.__entry_order.fill_insert(entry_order_info['price'], entry_order_info['qty'], self.__time, Order.ENUM_ORDER_STATUS_FILLED)
                     self.__set_entry_order_params()
 
     def modify_entry_stop_take(self, stop_price: float=0, take_price: float=0):

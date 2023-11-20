@@ -46,8 +46,8 @@ class Report():
         self.__result_df.loc[self.__result_df['TradeResult']<0,'TradeType'] = 'Loss'
         self.__result_df.loc[self.__result_df['TradeResult']==0,'TradeType'] = 'None'
         total = self.__result_df.groupby('TradeType')['TradeResult'].sum()
-        totalProfit = total['Profit']
-        totalLoss = total['Loss']
+        totalProfit = total['Profit'] if 'Profit' in total.keys() else 0
+        totalLoss = total['Loss'] if 'Loss' in total.keys() else 0
         qty = self.__result_df.groupby('TradeType').size()
         qtyNone = qty['None'] if 'None' in qty.index else 0
 
