@@ -156,7 +156,7 @@ class Backtest():
     def __trade_logic_predict(self, history, step, last=False):
         try:
             date = pd.to_datetime(history[-1][self.__dm.get_data_idx('time')])
-            curr_close_price = history[-1][self.__dm.get_data_idx('close')]
+            curr_price = history[-1][self.__dm.get_data_idx('open')]
         except:
             self.logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Skipping {date} due to history lack of data.',time=datetime.now())
             return
@@ -174,14 +174,13 @@ class Backtest():
                 if last or self.__trade_logic.close_trade_logic(__curr_trade):
                     if __curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
                         self.logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Closing trade ({__curr_trade.get_trade_info()["trade_id"]}) due to {("last mkt data" if last else "close logic")}.',time=date)
-                        __curr_trade.close_trade(curr_close_price)
+                        __curr_trade.close_trade(curr_price)
                         self.__trade_finish(__curr_trade,date)
-                        continue
                 if self.__trade_logic.modify_logic(__curr_trade):
                     if __curr_trade.get_trade_info()['trade_state']==Trade.ENUM_TRADE_STATE_OPEN:
                         __curr_trade.modify_entry_stop_take(self.__trade_logic.new_sl,self.__trade_logic.new_tp)
                         continue
-        else:
+        if len(self.__curr_trades)==0:
             if signal == 1:
                 self.__new_trade(Order.ENUM_ORDER_SIDE_BUY,self.__trade_logic.qty,0,date,self.__trade_logic.stop_loss,self.__trade_logic.take_profit,self.__trade_logic.take_stop_calc,history)
             if signal == -1:
@@ -210,6 +209,7 @@ class Backtest():
                         qty,
                         price,
                         time,
+                        self.__bot_id,
                         self.logger
                     ),
                     self.__bot_id,
