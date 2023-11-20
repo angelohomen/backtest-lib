@@ -10,7 +10,7 @@ class Fill():
             qty: float,
             price: float,
             fill_time: datetime.datetime,
-            log: str=False
+            logger=None
             ):
         '''
             "Fill()" class is a model for order fills.
@@ -26,17 +26,14 @@ class Fill():
                         Fill price.
                     fill_time -> datetime:
                         Fill time.
-                    log -> bool (optional):
-                        Set True if want to retrieve bot logs.
         '''
-        self.__log=log
         self.__fill_id=str(uuid.uuid4())
         self.__order_id=order_id
         self.__side=side
         self.__qty=qty
         self.__price=price
         self.__fill_time=fill_time
-        if self.__log: Log.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New fill ({self.__fill_id}) - Side {self.__side} | Qty {self.__qty} | Px {self.__price} .',time=self.__fill_time)
+        if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'New fill ({self.__fill_id}) - Side {self.__side} | Qty {self.__qty} | Px {self.__price} .',time=self.__fill_time)
     
     def get_fill_id(self):
         return self.__fill_id

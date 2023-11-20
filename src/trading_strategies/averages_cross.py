@@ -8,19 +8,20 @@ class AveragesCross():
     def __init__(
             self,
             slow_ma_inputs:dict,
-            fast_ma_inputs:dict) -> None:
-        self.__dm=DataManipulation()
+            fast_ma_inputs:dict,
+            logger: Log=None) -> None:
         self.__signal=None
         self.__slow_ma_inputs=slow_ma_inputs
         self.__fast_ma_inputs=fast_ma_inputs
+        self.__logger=logger
 
     def set_full_history(self, full_history):
         self.initialize_indicators(full_history)
 
     def initialize_indicators(self,full_history):
-        self.__slow_ma_buff=MovingAverage(full_history,self.__slow_ma_inputs)
+        self.__slow_ma_buff=MovingAverage(full_history,self.__slow_ma_inputs,self.__logger)
         self.__slow_ma=self.__slow_ma_buff.get_ma()
-        self.__fast_ma_buff=MovingAverage(full_history,self.__fast_ma_inputs)
+        self.__fast_ma_buff=MovingAverage(full_history,self.__fast_ma_inputs,self.__logger)
         self.__fast_ma=self.__fast_ma_buff.get_ma()
 
     def get_movings_averages(self):

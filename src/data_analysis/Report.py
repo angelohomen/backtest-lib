@@ -117,7 +117,8 @@ class Report():
             'max_drawdown': MDD,
             'max_drawdown_perc': MDD/self.__initBalance,
             'returns': returns,
-            'perc_returns': retornoPerc
+            'perc_returns': retornoPerc,
+            'sharpe_ratio': self.__result_df['TradeResult'].mean()/self.__result_df['TradeResult'].std()
         }
     
     def get_backtest_results(self):
@@ -143,6 +144,7 @@ class Report():
         print('Average loss trade: \t', round(self.__backtest_results['average_loss'],2), '\n')
         print('Profit trades (% of total): \t', round(self.__backtest_results['profit_trades_perc'],2),'%\n')
         print('Profit factor: \t\t\t', round(self.__backtest_results['profit_factor'],2))
+        print('Sharpe Ratio: \t\t\t', round(self.__backtest_results['sharpe_ratio'],2))
         print('Profit/Loss: \t\t\t', abs(round(self.__backtest_results['average_profit']/self.__backtest_results['average_loss'],2)))
         print('Total Net profit: \t\t', round(self.__backtest_results['returns'], 2))
         print('Percentual return: \t\t', round(self.__backtest_results['perc_returns'],2), '%\n')
