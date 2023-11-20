@@ -5,25 +5,27 @@ class Log():
     ENUM_MSG_TYPE_ERROR='ERROR'
     ENUM_MSG_TYPE_WARNING='WARNING'
     ENUM_MSG_TYPE_INFO='INFO'
-    __writer = None
-    __name="log"
 
-    @staticmethod
-    def LogMsg(ENUM_MSG_TYPE:str,msg:str,time:datetime.datetime=None) -> None:
+    def __init__(self,log_name) -> None:
+        self.__name=log_name
+        self.__writer=open(f"logs/{self.__name}.log", "w")
         if not os.path.exists('logs'): os.mkdir('logs')
-        if not Log.__writer: Log.__writer = open(f"logs/{Log.__name}.log", "w")
-        if Log.__writer:
-            if time:
-                Log.__writer.write(f'{time.strftime("%d-%m-%Y %H:%M:%S")} - [{ENUM_MSG_TYPE}] {msg}\n')
-            else:
-                Log.__writer.write(f'[{ENUM_MSG_TYPE}] {msg}\n')
+        
+    def __writer_open(self):
+        self.__writer=open(f"logs/{self.__name}.log", "w")
 
-    @staticmethod
-    def LogClose():
-        if Log.__writer: 
-            Log.__writer.close()
-            Log.__writer=None
+    def LogMsg(self,ENUM_MSG_TYPE:str,msg:str,time:datetime.datetime=None) -> None:
+        try:
+            if not self.__writer: self.__writer_open()
+            if self.__writer:
+                if time:
+                    self.__writer.write(f'{time.strftime("%d-%m-%Y %H:%M:%S")} - [{ENUM_MSG_TYPE}] {msg}\n')
+                else:
+                    self.__writer.write(f'[{ENUM_MSG_TYPE}] {msg}\n')
+        except:
+            pass
 
-    @staticmethod
-    def SetLogName(log_name='logs'):
-        Log.__name=log_name
+    def LogClose(self):
+        if self.__writer: 
+            self.__writer.close()
+            self.__writer=None
