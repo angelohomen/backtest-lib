@@ -23,7 +23,7 @@ class TradeLogic():
         ENUM_TAKE_STOP_CALC_TYPE: str=Trade.ENUM_TAKE_STOP_CALC_TYPE_PTS,
         stop_loss: float=0,
         take_profit: float=0,
-        INPUTS=INPUTS()
+        INPUTS=INPUTS
         ):
         '''
             "TradeLogic()" is a class with all algo logics to trade, called by backtest. Do not delete set_full_history, update, trade_logic, close_trade_logic or modify_logic functions.

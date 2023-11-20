@@ -44,10 +44,10 @@ class MovingAverage():
             self.__df = pd.DataFrame(history, columns=DataManipulation.PRICE_COLUMNS)
             if self.__INPUTS['ENUM_AVERAGE_TYPE']==self.ENUM_AVERAGE_TYPE_SMA:
                 self.__df['ma'] = self.__df['close'].rolling(window=self.__INPUTS['period']).mean()
-                if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Moving average ({self.__INPUTS["period"]}) loaded.',time=datetime.now())
+                if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Moving average ({self.__INPUTS["period"]}) loaded.',time=datetime.now())
             elif self.__INPUTS['ENUM_AVERAGE_TYPE']==self.ENUM_AVERAGE_TYPE_EMA:
                 self.__df['ma'] = self.__df['close'].ewm(span=self.__INPUTS['period'], min_periods=self.__INPUTS['period'], adjust=False).mean()
-                if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'Moving average ({self.__INPUTS["period"]}) loaded.',time=datetime.now())
+                if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_INFO,msg=f'Moving average ({self.__INPUTS["period"]}) loaded.',time=datetime.now())
             else:
                 if logger: logger.LogMsg(ENUM_MSG_TYPE=Log.ENUM_MSG_TYPE_ERROR,msg=f'ENUM_AVERAGE_TYPE ({self.__INPUTS["ENUM_AVERAGE_TYPE"]}) does not exist.',time=datetime.now())
                 self.__df['ma']=float('NaN')

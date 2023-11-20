@@ -12,13 +12,13 @@ class TimeToTrade():
 
     def __verify_inputs(self):
         if self.time_to_open_trades>=self.time_to_stop_open:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'time_to_open_trades cannot be bigger or equals to time_to_stop_open',time=datetime.now())
+            print('time_to_open_trades cannot be bigger or equals to time_to_stop_open')
             return False
         if self.time_to_open_trades>=self.time_to_close_trades:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'time_to_open_trades cannot be bigger or equals to time_to_close_trades',time=datetime.now())
+            print('time_to_open_trades cannot be bigger or equals to time_to_close_trades')
             return False
         if self.time_to_close_trades<self.time_to_stop_open:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR,'time_to_stop_open cannot be bigger than time_to_close_trades',time=datetime.now())
+            print('time_to_stop_open cannot be bigger than time_to_close_trades')
             return False
         return True
 
