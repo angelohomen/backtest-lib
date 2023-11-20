@@ -16,14 +16,14 @@ class OptimizeOptions:
     @staticmethod
     def float(init_value, final_value, step):
         if final_value<=init_value:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR, 'Inputs error, final_value must be bigger than init_value.', datetime.now())
+            print('Inputs error, final_value must be bigger than init_value.')
             raise Exception()
         return list(np.arange(init_value, final_value, step))
     
     @staticmethod
     def int(init_value, final_value, step):
         if final_value<=init_value:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR, 'Inputs error, final_value must be bigger than init_value.', datetime.now())
+            print('Inputs error, final_value must be bigger than init_value.')
             raise Exception()
         return list(range(init_value, final_value, step))
     
@@ -39,6 +39,6 @@ class OptimizeOptions:
     def time(init_value:datetime, final_value:datetime, step:int):
         to_return=[init_value]
         if final_value<=init_value:
-            Log.LogMsg(Log.ENUM_MSG_TYPE_ERROR, 'Inputs error, final_value must be bigger than init_value.', datetime.now())
+            print('Inputs error, final_value must be bigger than init_value.')
             raise Exception()
         return list(map(lambda x: x.time().strftime('%H:%M:%S'), pd.date_range(start=init_value, end = final_value, freq=timedelta(seconds=step))))
